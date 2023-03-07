@@ -17,7 +17,7 @@ export async function getChatGptResponse(request) {
       temperature: 1,
       stream: false
     });
-    console.log("Full response: ", response, `Choices: `, ...response.data.choices)
+    // console.log("Full response: ", response, `Choices: `, ...response.data.choices)
     return response.data.choices[0].text;
   } catch (err) {
     console.log(`ChatGPT error: ` + err);
