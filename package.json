@@ -13,7 +13,7 @@
   "dependencies": {
     "@google-cloud/translate": "^7.1.0",
     "dotenv": "^16.0.3",
-    "openai": "^3.1.0",
+    "openai": "^3.2.1",
     "telegraf": "^4.11.2"
   },
   "devDependencies": {

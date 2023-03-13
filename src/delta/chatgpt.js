@@ -1,6 +1,7 @@
 import { composer, middleware } from "../core/bot.js";
 import { getChatGptResponse } from "../apis/chatgpt-api.js";
 import { translateTo } from "../apis/google-translate-api.js";
+import { cache } from "../core/cache.js";
 
 composer.use(async (ctx) => {
   let obj = {};
@@ -14,45 +15,50 @@ composer.use(async (ctx) => {
     obj["who"] = `${username}: ${ctx.from.id} *** text: ${ctx.message.text}`;
 
     /** @Main part: */
-    // const englishTranslation = await translateTo("en", userText);
 
-    // obj["English translation"] = `${englishTranslation}`;
+    if (cache[`${userText.toLowerCase()}`])
+      return ctx.reply(cache[`${userText.toLowerCase()}`]);
 
-    // if (!englishTranslation)
-    //   return ctx.reply(
-    //     `Tarjimada xatolik ro'y berdi, ushbu xatoni albatta tuzatamiz!`
-    //   );
-    // let chatGptResponse = await getChatGptResponse(englishTranslation);
-    // if (!chatGptResponse)
-    //   return await ctx.replyWithHTML(
-    //     `Uzr, ushbu sun'iy intellekt algoritmi juda katta miqdorda so'rovlar qabul qilmoqda ` +
-    //       `va hozirda javob bera olmaydi, bu xatoni tuzatish uchun qattiq mehnat qilishmoqda. ` +
-    //       `Iltimos, keyinroq urunib ko'ring, tushunganingiz uchun rahmat!`
-    //   );
+    const englishTranslation = await translateTo("en", userText);
 
-    // chatGptResponse = chatGptResponse.replace(/\n/gi, "frspce ");
-    // let uzbekTranslation = await translateTo("uz", chatGptResponse);
-    // uzbekTranslation = uzbekTranslation.replace(/frspce /gi, "\n");
+    obj["English translation"] = `${englishTranslation}`;
 
-    // obj["Response"] = chatGptResponse;
-    // obj[`Response translation:`] = `${uzbekTranslation}`;
+    if (!englishTranslation)
+      return ctx.reply(
+        `Tarjimada xatolik ro'y berdi, ushbu xatoni albatta tuzatamiz!`
+      );
+    let chatGptResponse = await getChatGptResponse(englishTranslation);
+    console.log(`ChatGPT response: ${chatGptResponse}`)
+    if (!chatGptResponse)
+      return await ctx.replyWithHTML(
+        `Uzr, ushbu sun'iy intellekt algoritmi juda katta miqdorda so'rovlar qabul qilmoqda ` +
+          `va hozirda javob bera olmaydi, bu xatoni tuzatish uchun qattiq mehnat qilishmoqda. ` +
+          `Iltimos, keyinroq urunib ko'ring, tushunganingiz uchun rahmat!`
+      );
 
-    // if (!uzbekTranslation)
-    //   return ctx.reply(
-    //     `Tarjimada xatolik ro'y berdi, ushbu xatoni albatta tuzatamiz!`
-    //   );
+    chatGptResponse = chatGptResponse.replace(/\n/gi, "frspce ");
+    let uzbekTranslation = await translateTo("uz", chatGptResponse);
+    uzbekTranslation = uzbekTranslation.replace(/frspce /gi, "\n");
 
-    // obj = JSON.stringify(obj);
+    obj["Response"] = chatGptResponse;
+    obj[`Response translation:`] = `${uzbekTranslation}`;
 
-    // return ctx.replyWithHTML(uzbekTranslation, { parse_mode: "HTML" });
+    if (!uzbekTranslation)
+      return ctx.reply(
+        `Tarjimada xatolik ro'y berdi, ushbu xatoni albatta tuzatamiz!`
+      );
+
+    obj = JSON.stringify(obj);
+    console.log(obj);
+    return ctx.replyWithHTML(uzbekTranslation, { parse_mode: "HTML" });
 
     /** return @translation only */
     // const englishTranslation = await translateTo("en", userText);
     // return ctx.replyWithHTML(englishTranslation, { parse_mode: "HTML" });
 
     /** return @chatgpt response without translation */
-    const chatGptResponse = await getChatGptResponse(userText);
-    return chatGptResponse;
+    // const chatGptResponse = await getChatGptResponse(userText);
+    // return chatGptResponse;
   } catch (err) {
     console.log(err);
     return ctx.reply(
